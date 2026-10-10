@@ -1,59 +1,86 @@
 # Server Admin MCP
 
-**Documentation / Языки:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
+**Documentation / Languages:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
 
-**Self-hosted MCP server for remote Linux VPS administration through ChatGPT and other MCP clients.**
+**MCP server for remote Linux VPS administration through ChatGPT and other MCP clients.**
 
-Built with Node.js, TypeScript, Express, and MCP Streamable HTTP.
+Built with Node.js, TypeScript, and Express. Uses the MCP protocol with Streamable HTTP.
 
-**Documentation:** English · [Русский](README.ru.md)
+[Русская документация](README.ru.md)
 
-## Tools
+## Features
 
-| Tool | Description |
+| Tool | Purpose |
 | --- | --- |
-| `exec` | Execute shell commands, optionally with working directory and timeout |
-| `read_file` | Read a text file from the server |
+| `exec` | Execute Linux shell commands |
+| `read_file` | Read text files on the server |
+
+For `exec`, you can specify a working directory and execution timeout.
 
 ## Installation
 
-Requires Node.js 20+.
+Requires Node.js 20 or newer.
 
 ```bash
 git clone https://github.com/dedotmoroz/server-admin-mcp.git
 cd server-admin-mcp
 npm install
-export MCP_TOKEN="$(openssl rand -hex 32)"
 npm start
 ```
 
-The server listens at `127.0.0.1:3001/mcp`. Requests require `Authorization: Bearer <MCP_TOKEN>`.
+By default, MCP is available locally at `http://127.0.0.1:3001/mcp`.
 
-## Nginx HTTPS proxy
+## HTTPS via Nginx
 
 ```nginx
 location = /mcp {
     proxy_pass http://127.0.0.1:3001/mcp;
     proxy_http_version 1.1;
-    proxy_set_header Authorization $http_authorization;
     proxy_buffering off;
     proxy_read_timeout 3600s;
 }
 ```
 
+Always use HTTPS for external access.
+
+## Connecting to ChatGPT via Plugin
+
+After installing MCP on a VPS, it must be publicly accessible over HTTPS. For example:
+
+```text
+https://example.com/mcp
+```
+
+In ChatGPT, open **Settings → Plugins** and create or connect an MCP plugin using your server's public HTTPS address. The endpoint for this project is `/mcp`.
+
+Once connected, the `exec` and `read_file` tools become available to ChatGPT. You can then administer the server using normal chat messages.
+
+For an initial test, ask:
+
+> Check the server hostname, uptime, Linux kernel version, and disk usage.
+
+If the connection works, ChatGPT will call MCP and return real VPS data. You can also ask:
+
+> What processes are currently running on the server?
+
+> Show free disk space and memory usage.
+
+> Read /etc/os-release and tell me which Linux version is installed.
+
+> Check the nginx status.
+
+**Important:** ChatGPT's interface and menu names may change. Look for **Plugins** in ChatGPT settings and the option to connect a custom MCP server.
+
 ## Security
 
-**Warning:** This MCP can execute arbitrary shell commands and read files with the privileges of its process. Run as a dedicated least-privileged user, not root. Restrict access and never commit secrets.
+**Warning:** this MCP can execute arbitrary commands and read files with the permissions of the Node.js process. Run it as a dedicated least-privilege user, not root.
 
-Bearer authentication is enabled in the **published source**, but the existing VPS deployment has not been updated automatically. The server does not implement OAuth, which some remote MCP clients may require.
+OAuth is not implemented in this minimal version. Some clients, including certain ChatGPT connection methods, may require an OAuth gateway.
 
-## Documentation languages
+## Documentation localization
 
-- [English](README.md)
-- [Русский](README.ru.md)
-
-Additional translations can be added as `README.de.md`, `README.fr.md`, etc.
+The primary documentation is [README.md](README.md) (English). Other translations are available through the language links at the top.
 
 ---
 
-**Another project by the author**: [KotCat](https://kotcat.com) — a tool for learning and remembering foreign-language vocabulary.
+**Another project by the author:** [KotCat](https://kotcat.com) — a service for learning and remembering foreign-language vocabulary.
