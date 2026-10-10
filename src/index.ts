@@ -2,14 +2,11 @@ import express from "express";
 import { exec as execCb } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs/promises";
-import { timingSafeEqual } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
 const shellExec = promisify(execCb);
-const TOKEN = process.env.MCP_TOKEN;
-if (!TOKEN) throw new Error("MCP_TOKEN environment variable is required");
 
 function createMcpServer() {
   const server = new McpServer({ name: "vps-admin", version: "1.0.0" });
@@ -45,12 +42,6 @@ function createMcpServer() {
 const app = express();
 app.use(express.json({ limit: "10mb" }));
 app.use((req, res, next) => {
-  const authorization = req.headers.authorization || "";
-  const provided = Buffer.from(authorization.startsWith("Bearer ") ? authorization.slice(7) : "");
-  const expected = Buffer.from(TOKEN);
-  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
   next();
 });
 app.post("/mcp", async (req, res) => {
