@@ -1,5 +1,5 @@
 {
-  "name": "server-admin-mcp",
+  "name": "@dedotmoroz/server-admin-mcp",
   "version": "1.0.0",
   "private": false,
   "type": "module",
@@ -9,12 +9,29 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "express": "^5.2.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "tsx": "^4.23.15",
+    "@types/node": "^26.6.4",
+    "@types/express": "^5.0.6"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^26.6.4",
-    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
+  },
+  "mcpName": "io.github.dedotmoroz/server-admin-mcp",
+  "description": "Self-hosted MCP server for remote Linux VPS administration",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dedotmoroz/server-admin-mcp.git"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "README.ru.md",
+    "README.es.md",
+    "README.de.md",
+    "README.zh.md"
+  ],
+  "engines": {
+    "node": ">=20"
   }
 }
