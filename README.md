@@ -1,27 +1,33 @@
 # Server Admin MCP
 
-Self-hosted Model Context Protocol (MCP) server for Linux VPS administration using Node.js, TypeScript, Express, and Streamable HTTP.
+**Self-hosted MCP server for remote Linux VPS administration through ChatGPT and other MCP clients.**
 
-**Security warning:** This server allows arbitrary shell execution and file reading. Do not expose it without strong authentication and network restrictions. Run it as a dedicated least-privilege user, not root.
+Built with Node.js, TypeScript, Express, and MCP Streamable HTTP.
+
+**Documentation:** English · [Русский](README.ru.md)
 
 ## Tools
 
-- `exec`: execute a shell command, optionally setting working directory and timeout.
-- `read_file`: read a text file by path.
+| Tool | Description |
+| --- | --- |
+| `exec` | Execute shell commands, optionally with working directory and timeout |
+| `read_file` | Read a text file from the server |
 
-## Setup
+## Installation
 
-Install Node.js 20+, clone this repository, and run:
+Requires Node.js 20+.
 
 ```bash
+git clone https://github.com/dedotmoroz/server-admin-mcp.git
+cd server-admin-mcp
 npm install
 export MCP_TOKEN="$(openssl rand -hex 32)"
 npm start
 ```
 
-The server listens at `127.0.0.1:3001/mcp` and requires `Authorization: Bearer <MCP_TOKEN>`.
+The server listens at `127.0.0.1:3001/mcp`. Requests require `Authorization: Bearer <MCP_TOKEN>`.
 
-### Nginx HTTPS reverse proxy
+## Nginx HTTPS proxy
 
 ```nginx
 location = /mcp {
@@ -33,8 +39,15 @@ location = /mcp {
 }
 ```
 
-## Security and deployment status
+## Security
 
-The published source is based on the working VPS server, **with Bearer authentication enabled**. The deployed version previously had the authentication check commented out. Publishing this repository does not update the VPS deployment.
+**Warning:** This MCP can execute arbitrary shell commands and read files with the privileges of its process. Run as a dedicated least-privileged user, not root. Restrict access and never commit secrets.
 
-The server does not implement OAuth, which some MCP clients require. Never commit tokens or other credentials. Consider limiting accessible commands and file paths before exposing this server to untrusted clients.
+Bearer authentication is enabled in the **published source**, but the existing VPS deployment has not been updated automatically. The server does not implement OAuth, which some remote MCP clients may require.
+
+## Documentation languages
+
+- [English](README.md)
+- [Русский](README.ru.md)
+
+Additional translations can be added as `README.de.md`, `README.fr.md`, etc.
