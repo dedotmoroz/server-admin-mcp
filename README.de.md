@@ -1,50 +1,86 @@
 # Server Admin MCP
 
-**Selbst gehosteter MCP-Server zur Verwaltung von Linux-VPS über ChatGPT und andere MCP-Clients.**
+**Dokumentation / Sprachen:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
 
-Entwickelt mit Node.js, TypeScript und Express; verwendet MCP über Streamable HTTP.
+**MCP-Server zur Fernverwaltung eines Linux-VPS über ChatGPT und andere MCP-Clients.**
 
-**Dokumentation:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · Deutsch · [中文](README.zh.md)
+Entwickelt mit Node.js, TypeScript und Express. Verwendet das MCP-Protokoll mit Streamable HTTP.
 
-## Werkzeuge
+[Englische Dokumentation](README.md)
 
-| Werkzeug | Funktion |
+## Funktionen
+
+| Werkzeug | Zweck |
 | --- | --- |
-| `exec` | Shell-Befehle ausführen, optional mit Arbeitsverzeichnis und Zeitlimit |
+| `exec` | Linux-Shell-Befehle ausführen |
 | `read_file` | Textdateien auf dem Server lesen |
+
+Für `exec` können Arbeitsverzeichnis und Ausführungs-Timeout angegeben werden.
 
 ## Installation
 
-Node.js 20 oder neuer wird benötigt.
+Node.js 20 oder neuer ist erforderlich.
 
 ```bash
 git clone https://github.com/dedotmoroz/server-admin-mcp.git
 cd server-admin-mcp
 npm install
-export MCP_TOKEN="$(openssl rand -hex 32)"
 npm start
 ```
 
-Der Server lauscht auf `127.0.0.1:3001/mcp`. Jede Anfrage benötigt `Authorization: Bearer <MCP_TOKEN>`.
+Standardmäßig ist MCP lokal unter `http://127.0.0.1:3001/mcp` erreichbar.
 
-## HTTPS-Reverse-Proxy mit Nginx
+## HTTPS über Nginx
 
 ```nginx
 location = /mcp {
     proxy_pass http://127.0.0.1:3001/mcp;
     proxy_http_version 1.1;
-    proxy_set_header Authorization $http_authorization;
     proxy_buffering off;
     proxy_read_timeout 3600s;
 }
 ```
 
+Für externen Zugriff sollte immer HTTPS verwendet werden.
+
+## Verbindung mit ChatGPT über Plugin
+
+Nach der Installation auf dem VPS muss MCP öffentlich über HTTPS erreichbar sein. Zum Beispiel:
+
+```text
+https://example.com/mcp
+```
+
+Öffnen Sie in ChatGPT **Settings → Plugins** und erstellen oder verbinden Sie ein MCP-Plugin mit der öffentlichen HTTPS-Adresse Ihres Servers. Der Endpoint dieses Projekts ist `/mcp`.
+
+Nach der Verbindung stehen ChatGPT die Werkzeuge `exec` und `read_file` zur Verfügung. Der Server kann anschließend mit normalen Chat-Nachrichten verwaltet werden.
+
+Fragen Sie zum ersten Test beispielsweise:
+
+> Prüfe den Hostnamen des Servers, die Uptime, die Linux-Kernel-Version und die Festplattenbelegung.
+
+Wenn die Verbindung funktioniert, ruft ChatGPT den MCP-Server auf und liefert reale VPS-Daten zurück. Weitere Beispiele:
+
+> Welche Prozesse laufen derzeit auf dem Server?
+
+> Zeige den freien Speicherplatz und die Speichernutzung.
+
+> Lies /etc/os-release und sage mir, welche Linux-Version installiert ist.
+
+> Prüfe den Status von nginx.
+
+**Wichtig:** Die Benutzeroberfläche und Menübezeichnungen von ChatGPT können sich ändern. Suchen Sie in den ChatGPT-Einstellungen nach **Plugins** und nach der Möglichkeit, einen eigenen MCP-Server zu verbinden.
+
 ## Sicherheit
 
-**Warnung:** Dieser Server kann beliebige Shell-Befehle ausführen und Dateien mit den Rechten des Serverprozesses lesen. Verwende einen eigenen Benutzer mit minimalen Rechten, nicht root. Beschränke den Zugriff und veröffentliche keine Zugangsdaten in Git.
+**Achtung:** Dieser MCP kann beliebige Befehle ausführen und Dateien mit den Rechten des Node.js-Prozesses lesen. Führen Sie den Dienst mit einem eigenen Benutzer mit minimalen Rechten aus, nicht als root.
 
-Die Bearer-Authentifizierung ist im **veröffentlichten Quellcode** aktiviert. Die bereits laufende VPS-Installation wird dadurch nicht automatisch aktualisiert. OAuth wird nicht unterstützt; manche entfernten MCP-Clients benötigen daher ein OAuth-fähiges Gateway.
+OAuth ist in dieser Minimalversion nicht implementiert. Einige Clients, einschließlich bestimmter ChatGPT-Verbindungsarten, können ein OAuth-Gateway benötigen.
+
+## Lokalisierung der Dokumentation
+
+Die Hauptdokumentation ist [README.md](README.md) (Englisch). Weitere Übersetzungen sind über die Sprachlinks oben verfügbar.
 
 ---
 
-**Weiteres Projekt des Autors:** [KotCat](https://kotcat.com) — ein Tool zum Lernen von Fremdsprachenvokabeln.
+**Ein weiteres Projekt des Autors:** [KotCat](https://kotcat.com) — ein Dienst zum Lernen und Einprägen fremdsprachiger Vokabeln.
