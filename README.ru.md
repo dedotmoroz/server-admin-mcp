@@ -1,5 +1,7 @@
 # Server Admin MCP
 
+**Documentation / Языки:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
+
 **MCP-сервер для удалённого управления Linux VPS через ChatGPT и другие MCP-клиенты.**
 
 Реализован на Node.js, TypeScript и Express. Использует протокол MCP (Streamable HTTP).
@@ -54,3 +56,7 @@ OAuth в этой минимальной реализации отсутству
 ## Локализация документации
 
 Основная документация — [README.md](README.md) (English). Русская версия — этот файл. Можно добавлять и другие языки, например `README.de.md`, `README.fr.md` и `README.es.md`.
+
+---
+
+**Другой проект автора**: [KotCat](https://kotcat.com) — сервис для изучения и запоминания иностранных слов.
