@@ -1,5 +1,7 @@
 # Server Admin MCP
 
+**Documentation / Языки:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
+
 **Self-hosted MCP server for remote Linux VPS administration through ChatGPT and other MCP clients.**
 
 Built with Node.js, TypeScript, Express, and MCP Streamable HTTP.
@@ -51,3 +53,7 @@ Bearer authentication is enabled in the **published source**, but the existing V
 - [Русский](README.ru.md)
 
 Additional translations can be added as `README.de.md`, `README.fr.md`, etc.
+
+---
+
+**Another project by the author**: [KotCat](https://kotcat.com) — a tool for learning and remembering foreign-language vocabulary.
