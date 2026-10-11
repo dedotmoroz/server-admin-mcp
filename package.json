@@ -1,8 +1,11 @@
 {
   "name": "@dedotmoroz/server-admin-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "type": "module",
+  "bin": {
+    "server-admin-mcp": "bin/server-admin-mcp.js"
+  },
   "scripts": {
     "start": "tsx src/index.ts"
   },
@@ -21,9 +24,10 @@
   "description": "Self-hosted MCP server for remote Linux VPS administration",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dedotmoroz/server-admin-mcp.git"
+    "url": "git+https://github.com/dedotmoroz/server-admin-mcp.git"
   },
   "files": [
+    "bin/",
     "src/",
     "README.md",
     "README.ru.md",
