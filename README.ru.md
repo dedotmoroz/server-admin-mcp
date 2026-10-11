@@ -1,12 +1,10 @@
 # Server Admin MCP
 
-**Documentation / Языки:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
+**Документация / Языки:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [简体中文](README.zh.md)
 
 **MCP-сервер для удалённого управления Linux VPS через ChatGPT и другие MCP-клиенты.**
 
-Реализован на Node.js, TypeScript и Express. Использует протокол MCP (Streamable HTTP).
-
-[English documentation](README.md)
+Реализован на Node.js, TypeScript и Express. Использует MCP через Streamable HTTP.
 
 ## Возможности
 
@@ -15,11 +13,32 @@
 | `exec` | Выполнение команд оболочки Linux |
 | `read_file` | Чтение текстовых файлов на сервере |
 
-Для `exec` можно указать рабочую директорию и тайм-аут выполнения команды.
-
 ## Установка
 
-Требуется Node.js 20 или новее.
+Требуется Node.js 20 или новее. Для серверной установки пакет удобно держать в отдельной директории:
+
+```bash
+sudo mkdir -p /opt/server-admin-mcp
+cd /opt/server-admin-mcp
+npm init -y
+npm install @dedotmoroz/server-admin-mcp
+```
+
+Запуск локально установленного пакета:
+
+```bash
+npx server-admin-mcp
+```
+
+или напрямую:
+
+```bash
+/opt/server-admin-mcp/node_modules/.bin/server-admin-mcp
+```
+
+По умолчанию MCP доступен по адресу `http://127.0.0.1:3001/mcp`.
+
+### Установка из исходников
 
 ```bash
 git clone https://github.com/dedotmoroz/server-admin-mcp.git
@@ -28,14 +47,48 @@ npm install
 npm start
 ```
 
-По умолчанию MCP доступен локально по адресу `http://127.0.0.1:3001/mcp`.
+## Запуск через systemd
+
+Для постоянной работы лучше использовать systemd, а не держать открытой SSH-сессию:
+
+```ini
+[Unit]
+Description=Server Admin MCP
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/server-admin-mcp
+ExecStart=/opt/server-admin-mcp/node_modules/.bin/server-admin-mcp
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Сохраните конфигурацию в `/etc/systemd/system/server-admin-mcp.service`, затем:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now server-admin-mcp
+sudo systemctl status server-admin-mcp
+```
+
 ## HTTPS через Nginx
+
+Для внешнего доступа проксируйте локальный MCP endpoint через HTTPS:
 
 ```nginx
 location = /mcp {
     proxy_pass http://127.0.0.1:3001/mcp;
     proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
     proxy_buffering off;
+    proxy_cache off;
     proxy_read_timeout 3600s;
 }
 ```
@@ -44,42 +97,18 @@ location = /mcp {
 
 ## Подключение к ChatGPT через Plugin
 
-После установки MCP на VPS он должен быть доступен из интернета по HTTPS. Например:
+После настройки DNS, Nginx и TLS подключите ChatGPT к публичному адресу, например `https://mcp.example.com/mcp`. В ChatGPT откройте **Settings → Plugins** и подключите собственный MCP-сервер.
 
-```text
-https://example.com/mcp
-```
-
-В ChatGPT откройте **Settings → Plugins** и создайте или подключите MCP-плагин, указав публичный HTTPS-адрес вашего сервера. Для сервера из этого репозитория endpoint — `/mcp`.
-
-После подключения инструменты `exec` и `read_file` станут доступны ChatGPT. Теперь сервером можно управлять обычными сообщениями в чате.
-
-Например, для первой проверки спросите:
+Для первой проверки можно спросить:
 
 > Посмотри имя сервера, uptime, версию ядра Linux и сколько места занято на диске.
 
-Если подключение работает, ChatGPT вызовет MCP и вернёт реальные данные VPS. Можно также попросить:
-
-> Какие процессы сейчас запущены на сервере?
-
-> Покажи свободное место и использование памяти.
-
-> Прочитай файл /etc/os-release и скажи, какая версия Linux установлена.
-
-> Проверь статус nginx.
-
-**Важно:** интерфейс и названия пунктов ChatGPT могут меняться. Ищите раздел **Plugins** в настройках ChatGPT и возможность подключения собственного MCP-сервера.
-
 ## Безопасность
 
-**Внимание:** этот MCP позволяет выполнять произвольные команды и читать файлы с правами процесса Node.js. Запускайте сервис от отдельного пользователя с минимальными правами, не от root. 
+**Внимание:** MCP позволяет выполнять произвольные команды и читать файлы с правами процесса Node.js. Запускайте сервис от отдельного пользователя с минимальными правами, не от root.
 
-OAuth в этой минимальной реализации отсутствует. Для некоторых клиентов, в том числе отдельных способов подключения ChatGPT, может потребоваться OAuth-шлюз.
-
-## Локализация документации
-
-Основная документация — [README.md](README.md) (English). Русская версия — этот файл. Можно добавлять и другие языки, например `README.de.md`, `README.fr.md` и `README.es.md`.
+В этой минимальной версии нет встроенной аутентификации и OAuth. Не выставляйте сервер в публичный интернет без подходящего слоя контроля доступа. Для некоторых клиентов, включая отдельные способы подключения ChatGPT, может потребоваться OAuth-шлюз.
 
 ---
 
-**Другой проект автора**: [KotCat](https://kotcat.com) — сервис для изучения и запоминания иностранных слов.
+**Другой проект автора:** [KotCat](https://kotcat.com) — сервис для изучения и запоминания иностранных слов.
