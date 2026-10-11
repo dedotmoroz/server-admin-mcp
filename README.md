@@ -4,9 +4,7 @@
 
 **MCP server for remote Linux VPS administration through ChatGPT and other MCP clients.**
 
-Built with Node.js, TypeScript, and Express. Uses the MCP protocol with Streamable HTTP.
-
-[Русская документация](README.ru.md)
+Built with Node.js, TypeScript, and Express. Uses MCP over Streamable HTTP.
 
 ## Features
 
@@ -15,11 +13,32 @@ Built with Node.js, TypeScript, and Express. Uses the MCP protocol with Streamab
 | `exec` | Execute Linux shell commands |
 | `read_file` | Read text files on the server |
 
-For `exec`, you can specify a working directory and execution timeout.
-
 ## Installation
 
-Requires Node.js 20 or newer.
+Requires Node.js 20 or newer. For a server installation, keep the package in its own directory:
+
+```bash
+sudo mkdir -p /opt/server-admin-mcp
+cd /opt/server-admin-mcp
+npm init -y
+npm install @dedotmoroz/server-admin-mcp
+```
+
+Start it with the locally installed executable:
+
+```bash
+npx server-admin-mcp
+```
+
+or directly:
+
+```bash
+/opt/server-admin-mcp/node_modules/.bin/server-admin-mcp
+```
+
+By default the MCP endpoint is `http://127.0.0.1:3001/mcp`.
+
+### Install from source
 
 ```bash
 git clone https://github.com/dedotmoroz/server-admin-mcp.git
@@ -28,15 +47,48 @@ npm install
 npm start
 ```
 
-By default, MCP is available locally at `http://127.0.0.1:3001/mcp`.
+## Run with systemd
+
+For production, run it as a service instead of keeping an SSH session open:
+
+```ini
+[Unit]
+Description=Server Admin MCP
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/server-admin-mcp
+ExecStart=/opt/server-admin-mcp/node_modules/.bin/server-admin-mcp
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Save this as `/etc/systemd/system/server-admin-mcp.service`, then:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now server-admin-mcp
+sudo systemctl status server-admin-mcp
+```
 
 ## HTTPS via Nginx
+
+Expose the local MCP endpoint through an HTTPS reverse proxy:
 
 ```nginx
 location = /mcp {
     proxy_pass http://127.0.0.1:3001/mcp;
     proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
     proxy_buffering off;
+    proxy_cache off;
     proxy_read_timeout 3600s;
 }
 ```
@@ -45,41 +97,17 @@ Always use HTTPS for external access.
 
 ## Connecting to ChatGPT via Plugin
 
-After installing MCP on a VPS, it must be publicly accessible over HTTPS. For example:
-
-```text
-https://example.com/mcp
-```
-
-In ChatGPT, open **Settings → Plugins** and create or connect an MCP plugin using your server's public HTTPS address. The endpoint for this project is `/mcp`.
-
-Once connected, the `exec` and `read_file` tools become available to ChatGPT. You can then administer the server using normal chat messages.
+After configuring DNS, Nginx and TLS, connect ChatGPT to your public endpoint, for example `https://mcp.example.com/mcp`. In ChatGPT open **Settings → Plugins** and connect a custom MCP server.
 
 For an initial test, ask:
 
 > Check the server hostname, uptime, Linux kernel version, and disk usage.
 
-If the connection works, ChatGPT will call MCP and return real VPS data. You can also ask:
-
-> What processes are currently running on the server?
-
-> Show free disk space and memory usage.
-
-> Read /etc/os-release and tell me which Linux version is installed.
-
-> Check the nginx status.
-
-**Important:** ChatGPT's interface and menu names may change. Look for **Plugins** in ChatGPT settings and the option to connect a custom MCP server.
-
 ## Security
 
 **Warning:** this MCP can execute arbitrary commands and read files with the permissions of the Node.js process. Run it as a dedicated least-privilege user, not root.
 
-OAuth is not implemented in this minimal version. Some clients, including certain ChatGPT connection methods, may require an OAuth gateway.
-
-## Documentation localization
-
-The primary documentation is [README.md](README.md) (English). Other translations are available through the language links at the top.
+This minimal version does not implement authentication or OAuth. Do not expose it publicly without an appropriate access-control layer. Some clients, including certain ChatGPT connection methods, may require an OAuth gateway.
 
 ---
 
