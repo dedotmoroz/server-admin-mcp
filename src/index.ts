@@ -9,7 +9,7 @@ import { z } from "zod";
 const shellExec = promisify(execCb);
 
 function createMcpServer() {
-  const server = new McpServer({ name: "vps-admin", version: "1.0.0" });
+  const server = new McpServer({ name: "vps-admin", version: "1.0.1" });
 
   server.tool("exec", "Execute a shell command on the VPS and return stdout/stderr",
     { command: z.string(), cwd: z.string().optional(), timeout: z.number().min(1000).max(120000).optional() },
