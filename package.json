@@ -1,6 +1,6 @@
 {
   "name": "@dedotmoroz/server-admin-mcp",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "private": false,
   "type": "module",
   "bin": {
@@ -22,7 +22,7 @@
   },
   "files": [
     "bin/",
-    "src/index.js",
+    "src/",
     "README.md",
     "README.ru.md",
     "README.es.md",
