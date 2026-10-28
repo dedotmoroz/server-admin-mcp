@@ -95,6 +95,56 @@ location = /mcp {
 
 Always use HTTPS for external access.
 
+
+## OAuth 2.1 (experimental, single administrator)
+
+Version 1.1.0 includes an opt-in Authorization Code + PKCE (S256) provider with
+dynamic client registration and protected-resource metadata. **This is an
+experimental implementation; review and test before public deployment.**
+
+Generate a password hash on the machine (Node.js 20+):
+
+```bash
+node -e 'const c=require("node:crypto");const s=c.randomBytes(16);const p=process.argv[1];console.log(s.toString("hex")+":"+c.scryptSync(p,s,64).toString("hex"))' 'REPLACE_WITH_A_LONG_UNIQUE_PASSWORD'
+```
+
+Set environment variables in a root-owned, mode 0600 systemd EnvironmentFile:
+
+```ini
+MCP_AUTH_MODE=oauth
+MCP_PUBLIC_URL=https://mcp.example.com
+MCP_ADMIN_PASSWORD_HASH=<salt:hex>
+```
+
+The service **fails to start** if OAuth is enabled without a public HTTPS URL
+and password hash. No-auth mode remains bound to localhost and **must not be
+exposed publicly**.
+
+Nginx must proxy all of these paths to the local service, not just `/mcp`:
+`/mcp`, `/authorize`, `/token`, `/register`,
+`/.well-known/oauth-authorization-server`,
+`/.well-known/oauth-protected-resource`, and
+`/.well-known/oauth-protected-resource/mcp`.
+
+Example inside your TLS server block:
+
+```nginx
+location ~ ^/(mcp|authorize|token|register|\\.well-known/oauth-(authorization-server|protected-resource)(/mcp)?)$ {
+    proxy_pass http://127.0.0.1:3001;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_read_timeout 3600s;
+}
+```
+
+The OAuth login page explicitly warns that the client can execute shell commands.
+Tokens, clients, and authorization codes are stored **in process memory**:
+restarting the service invalidates them. There is no refresh-token support yet.
+For multi-user or production environments, use an audited identity provider and
+persistent token storage. Never run this service as root.
+
 ## Connecting to ChatGPT via Plugin
 
 After configuring DNS, Nginx and TLS, connect ChatGPT to your public endpoint, for example `https://mcp.example.com/mcp`. In ChatGPT open **Settings → Plugins** and connect a custom MCP server.
@@ -107,7 +157,7 @@ For an initial test, ask:
 
 **Warning:** this MCP can execute arbitrary commands and read files with the permissions of the Node.js process. Run it as a dedicated least-privilege user, not root.
 
-This minimal version does not implement authentication or OAuth. Do not expose it publicly without an appropriate access-control layer. Some clients, including certain ChatGPT connection methods, may require an OAuth gateway.
+OAuth is available as an experimental opt-in in version 1.1.0. Never expose the unauthenticated mode publicly.
 
 ---
 
