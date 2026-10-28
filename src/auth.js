@@ -7,7 +7,9 @@ const tokens = new Map();
 const attempts = new Map();
 const url = process.env.MCP_PUBLIC_URL?.replace(/\/$/, "");
 const passwordHash = process.env.MCP_ADMIN_PASSWORD_HASH;
-const enabled = process.env.MCP_AUTH_MODE === "oauth";
+const mode = process.env.MCP_AUTH_MODE ?? "none";
+if (!["none", "oauth"].includes(mode)) throw new Error("Unsupported MCP_AUTH_MODE");
+const enabled = mode === "oauth";
 if (enabled && (!url?.startsWith("https://") || !passwordHash || !/^[a-f0-9]{32}:[a-f0-9]{128}$/i.test(passwordHash))) {
   throw new Error("OAuth requires HTTPS MCP_PUBLIC_URL and MCP_ADMIN_PASSWORD_HASH (salt:hex scrypt)");
 }
