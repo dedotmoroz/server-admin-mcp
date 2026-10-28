@@ -5,11 +5,12 @@ import fs from "node:fs/promises";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
+import { installAuth } from "./auth.js";
 
 const shellExec = promisify(execCb);
 
 function createMcpServer() {
-  const server = new McpServer({ name: "vps-admin", version: "1.0.2" });
+  const server = new McpServer({ name: "vps-admin", version: "1.1.0" });
 
   server.tool("exec", "Execute a shell command on the VPS and return stdout/stderr",
     { command: z.string(), cwd: z.string().optional(), timeout: z.number().min(1000).max(120000).optional() },
@@ -41,7 +42,9 @@ function createMcpServer() {
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
-app.post("/mcp", async (req, res) => {
+app.use(express.urlencoded({ extended: false, limit: "16kb" }));
+const requireAuth = installAuth(app);
+app.post("/mcp", requireAuth, async (req, res) => {
   const server = createMcpServer();
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   res.on("close", () => { transport.close(); server.close(); });
@@ -53,4 +56,5 @@ app.post("/mcp", async (req, res) => {
     if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
   }
 });
-app.listen(3001, "127.0.0.1", () => console.log("VPS MCP listening on http://127.0.0.1:3001/mcp"));
+const port = Number(process.env.MCP_PORT ?? 3001);
+app.listen(port, "127.0.0.1", () => console.log(`VPS MCP listening on http://127.0.0.1:${port}/mcp`));
